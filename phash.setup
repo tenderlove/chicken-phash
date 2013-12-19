@@ -1,0 +1,15 @@
+(use srfi-1)
+(use srfi-13)
+(use posix)
+(let ((cflags (with-input-from-pipe "pkg-config --cflags pHash" read-line))
+      (lflags (with-input-from-pipe "pkg-config --libs pHash" read-line)))
+
+(compile -O2 -d0 -s -j phash "phash.scm" "-c++" ,cflags ,lflags)
+(compile -O2 -d0 -s phash.import.scm))
+
+(install-extension
+  'phash
+  '("phash.so" "phash.import.so")
+  '((version "1.0.0")))
+
+;; vim: set ft=scheme:

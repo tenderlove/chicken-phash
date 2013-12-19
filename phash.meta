@@ -1,0 +1,11 @@
+;;; phash.meta -*- Hen -*-
+
+((egg "phash.egg")
+ (synopsis "Bindings to pHash")
+ (author "Aaron Patterson")
+ (license "MIT")
+ (category net)
+ (doc-from-wiki)
+ (test-depends test)
+ (files "phash.scm" "phash.meta" "phash.setup" "tests/run.scm"))
+
