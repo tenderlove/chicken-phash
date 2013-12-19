@@ -1,6 +1,7 @@
 # pHash wrapper for Chicken scheme
 
-This wraps libpHash to allow calculating perceptual hashes from Chicken.
+This wraps [libpHash](http://www.phash.org/) to allow calculating perceptual
+hashes from Chicken.
 
 ## Usage:
 
