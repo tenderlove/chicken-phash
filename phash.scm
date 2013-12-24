@@ -62,9 +62,7 @@ DP ** ch_ph_dct_image_hashes(void **files, int count, int threads) {
 
 (define-foreign-type DP (c-pointer "DP"))
 
-(define mk-ptr (foreign-lambda c-pointer
-                               "mk_ptr"
-                               c-string))
+(define mk-ptr (foreign-lambda c-pointer "mk_ptr" c-string))
 
 (define ph_dct_image_hashes (foreign-lambda (c-pointer DP)
                                          "ch_ph_dct_image_hashes"
