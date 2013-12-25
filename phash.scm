@@ -106,6 +106,14 @@ DP ** ch_ph_dct_image_hashes(void **files, int count, int threads) {
                (point (make-datapoint ptr)))
           (loop (- x 1) (cons point seed))))))
 
+(define (pv-free pv len)
+  (let loop ((stop len)
+             (i 0))
+    (if (not (= i len))
+        (begin
+          (free (pointer-vector-ref pv i))
+          (loop len (+ 1 i))))))
+
 (define (dct-image-hashes images threads)
   (let ((pv (make-pointer-vector (length images))))
     (let loop ((elem (car images))
@@ -116,6 +124,8 @@ DP ** ch_ph_dct_image_hashes(void **files, int count, int threads) {
         (let* ((len (length images))
                (pointer (ph_dct_image_hashes pv len threads))
                (points (make-datapoints pointer len)))
+          (pv-free pv len)
+          (free pointer)
           points)
         (loop (car rest) (cdr rest) (+ 1 idx))))))
 
