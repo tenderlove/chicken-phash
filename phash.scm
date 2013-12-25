@@ -31,10 +31,11 @@ void * process_image(void * z) {
     ulong64 hash;
     DP *dp;
 
-    if(f->index >= f->length)
-      break;
-
     pthread_mutex_lock(&(f->lock));
+    if(f->index >= f->length) {
+      pthread_mutex_unlock(&(f->lock));
+      break;
+    }
     job = f->index;
     f->index++;
     pthread_mutex_unlock(&(f->lock));
