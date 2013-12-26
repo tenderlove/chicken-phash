@@ -7,6 +7,9 @@
   (test-error (dct-imagehash "asdflkjhasdlkfjh"))
 
   (test-group "hamming distance"
+    (let ((left (dct-imagehash "cremate.jpg")))
+      (test (list 3063128392 3997566655) (u32vector->list left)))
+
     (let ((left (dct-imagehash "cremate.jpg"))
           (right (dct-imagehash "cremate.jpg")))
       (test 0 (hamming-distance left right)))

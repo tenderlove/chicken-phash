@@ -8,8 +8,8 @@
    datapoint.hash
    hamming-distance)
 
-(import scheme chicken foreign)
-(use lolevel)
+(import scheme chicken foreign srfi-4)
+(use lolevel srfi-4)
 
 (foreign-declare "#include <pHash.h>")
 (foreign-declare "#include <pthread.h>")
@@ -89,10 +89,10 @@ DP ** ch_ph_dct_image_hashes(void **files, int count, int threads) {
   (hash datapoint.hash))
 
 (define (dct-imagehash filename)
-  (let-location ((i unsigned-integer64 0))
-                (if (= -1 (ph_dct_imagehash filename (location i)))
-                    (abort "something went wrong")
-                    i)))
+  (let ((vec (make-u32vector 2)))
+    (if (= -1 (ph_dct_imagehash filename vec))
+        (abort "something went wrong")
+        vec)))
 
 (define (make-datapoint ptr)
         (wrap-datapoint (dp->id ptr) (dp->hash ptr)))
@@ -145,34 +145,50 @@ DP ** ch_ph_dct_image_hashes(void **files, int count, int threads) {
                                          int
                                          int))
 
-(define ph_dct_imagehash (foreign-lambda int
-                                         "ph_dct_imagehash"
-                                         nonnull-c-string
-                                         (ref unsigned-integer64)))
+(define ph_dct_imagehash (foreign-lambda* int 
+                                ((nonnull-c-string file)
+                                 (u32vector ret))
+"
+ulong64 hash;
+int rv = ph_dct_imagehash(file, hash);
+*ret = (hash >> 32) & 0xFFFFFFFF;
+*(ret + 1) = hash & 0xFFFFFFFF;
+C_return(rv);"))
 
-(define hamming-distance (foreign-lambda int
-                                         "ph_hamming_distance"
-                                         unsigned-integer64
-                                         unsigned-integer64))
+(define hamming-distance (foreign-lambda* int
+                                         ((u32vector lv)
+                                          (u32vector rv))
+"
+ulong64 left;
+ulong64 right;
+left = *lv;
+left <<= 32;
+left += *(lv + 1);
+right = *rv;
+right <<= 32;
+right += *(rv + 1);
+C_return(ph_hamming_distance(left, right));
+"))
 
 (define get-dp (foreign-lambda c-pointer
                                          "get_dp"
                                          (c-pointer c-pointer)
                                          int))
 
-(define ph_free_datapoint (foreign-lambda void
-                                         "ph_free_datapoint"
-                                         DP))
 (define dp->id (foreign-lambda* c-string
                                 ((DP datapoint))
                                 "C_return(datapoint->id);"))
 
-(define dp->hash_length (foreign-lambda* unsigned-int32 
-                                ((DP datapoint))
-                                "C_return(datapoint->hash_length);"))
+(define (dp->hash dp)
+  (let ((vec (make-u32vector 2)))
+    (dp_hash dp vec)
+    vec))
 
-(define dp->hash (foreign-lambda* unsigned-integer64 
-                                ((DP datapoint))
-                                "C_return(*((ulong64*)datapoint->hash));"))
+(define dp_hash (foreign-lambda* void 
+                                ((DP datapoint)
+                                 (u32vector ret))
+                                "ulong64 hash = *(ulong64 *)datapoint->hash;
+                                *ret = (hash >> 32) & 0xFFFFFFFF;
+                                *(ret + 1) = hash & 0xFFFFFFFF;"))
 
 )
